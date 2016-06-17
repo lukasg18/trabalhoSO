@@ -3,6 +3,9 @@
 #include <time.h>
 /* Tamanho da matriz (ordem) */
 #define ORDEM 1000
+#define RANDOM_MIN 0
+#define RANDOM_MIN 29999
+typedef int KIND;
 
 /**
 *	Retorna um número randomico entre o mínimo
@@ -11,7 +14,7 @@
 *	@param int max
 *	@return int random
 **/
-int randomInt(int min, int max){
+KIND randomInt(KIND min, KIND max){
 	srand(time(NULL)*rand());
 	return ((rand()%(int)(((max) + 1)-(min)))+ (min));
 }
@@ -22,11 +25,11 @@ int randomInt(int min, int max){
 *	@return int** matrix
 */
 int** cria_matriz(int ordem){
-	int **matrix;
+	KIND **matrix;
 	int j;
-	matrix = (int**)malloc( ordem * sizeof(int*) );
+	matrix = (KIND**)malloc( ordem * sizeof(KIND*) );
 	for(j=0;j<ordem;j++)
-		matrix[j] = (int*)malloc( ordem * sizeof(int) );
+		matrix[j] = (KIND*)malloc( ordem * sizeof(KIND) );
 	return matrix;
 }
 
@@ -36,7 +39,7 @@ int** cria_matriz(int ordem){
 *	@param int** matrix
 *	@param int ordem
 */
-void preenche_matriz(int** matrix, int ordem){
+void preenche_matriz(KIND** matrix, int ordem){
 	int i,j;
 	for(i=0;i<ordem;i++)
 		for(j=0;j<ordem;j++){
@@ -49,7 +52,7 @@ void preenche_matriz(int** matrix, int ordem){
 *	@param int** matrix
 *	@param int ordem
 */
-void printMatrix(int **matrix, int ordem){
+void printMatrix(KIND **matrix, int ordem){
 	int i,j;
 	for(i=0;i<ordem;i++){
 		for(j=0;j<ordem;j++){
