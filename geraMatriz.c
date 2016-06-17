@@ -24,12 +24,12 @@ KIND randomInt(KIND min, KIND max){
 *	@param int ordem
 *	@return int** matrix
 */
-int** cria_matriz(int ordem){
-	KIND **matrix;
+int** criaMatriz(int ordem){
+	int **matrix;
 	int j;
-	matrix = (KIND**)malloc( ordem * sizeof(KIND*) );
+	matrix = (int**)malloc( ordem * sizeof(int*) );
 	for(j=0;j<ordem;j++)
-		matrix[j] = (KIND*)malloc( ordem * sizeof(KIND) );
+		matrix[j] = (int*)malloc( ordem * sizeof(int) );
 	return matrix;
 }
 
@@ -39,7 +39,7 @@ int** cria_matriz(int ordem){
 *	@param int** matrix
 *	@param int ordem
 */
-void preenche_matriz(KIND** matrix, int ordem){
+void preencheMatriz(int** matrix, int ordem){
 	int i,j;
 	for(i=0;i<ordem;i++)
 		for(j=0;j<ordem;j++){
