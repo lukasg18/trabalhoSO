@@ -21,7 +21,7 @@ int randomInt(int min, int max){
 *	@param int ordem
 *	@return int** matrix
 */
-int** cria_matriz(int ordem){
+int** criaMatriz(int ordem){
 	int **matrix;
 	int j;
 	matrix = (int**)malloc( ordem * sizeof(int*) );
@@ -36,7 +36,7 @@ int** cria_matriz(int ordem){
 *	@param int** matrix
 *	@param int ordem
 */
-void preenche_matriz(int** matrix, int ordem){
+void preencheMatriz(int** matrix, int ordem){
 	int i,j;
 	for(i=0;i<ordem;i++)
 		for(j=0;j<ordem;j++){
