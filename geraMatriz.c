@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 /* Tamanho da matriz (ordem) */
-#define ORDEM 1000
+#define ORDEM 10
 #define RANDOM_MIN 0
-#define RANDOM_MIN 29999
+#define RANDOM_MAX 29999
 typedef int KIND;
 
 /**
@@ -24,12 +24,12 @@ KIND randomInt(KIND min, KIND max){
 *	@param int ordem
 *	@return int** matrix
 */
-int** criaMatriz(int ordem){
-	int **matrix;
+KIND** createMatrix(int ordem){
+	KIND **matrix;
 	int j;
-	matrix = (int**)malloc( ordem * sizeof(int*) );
+	matrix = (KIND**)malloc( ordem * sizeof(KIND*) );
 	for(j=0;j<ordem;j++)
-		matrix[j] = (int*)malloc( ordem * sizeof(int) );
+		matrix[j] = (KIND*)malloc( ordem * sizeof(KIND) );
 	return matrix;
 }
 
@@ -39,7 +39,7 @@ int** criaMatriz(int ordem){
 *	@param int** matrix
 *	@param int ordem
 */
-void preencheMatriz(int** matrix, int ordem){
+void fillMatrix(KIND** matrix, int ordem){
 	int i,j;
 	for(i=0;i<ordem;i++)
 		for(j=0;j<ordem;j++){
@@ -56,7 +56,7 @@ void printMatrix(KIND **matrix, int ordem){
 	int i,j;
 	for(i=0;i<ordem;i++){
 		for(j=0;j<ordem;j++){
-			printf("%d ", matrix[i][j]);
+			printf("%d   ", matrix[i][j]);
 		}
 		printf("\n");
 	}
@@ -67,9 +67,22 @@ void printMatrix(KIND **matrix, int ordem){
 *	@param int** matrix
 *	@param int ordem
 */
-void freeMatrix(int** matrix, int ordem){
+void freeMatrix(KIND** matrix, int ordem){
 	int i;
 	for(i=0;i<ordem;i++)
 		free(matrix[i]);
 	free(matrix);
+}
+
+
+int main(){
+    //aloca matriz
+    KIND** matriz = createMatrix(ORDEM);
+    //preenche com números randômicos
+    fillMatrix(matriz, ORDEM);
+    //imprime
+    printMatrix(matriz, ORDEM);
+    //libera
+    freeMatrix(matriz, ORDEM);
+    return 0;
 }
