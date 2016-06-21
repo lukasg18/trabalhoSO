@@ -1,11 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 /* Tamanho da matriz (ordem) */
-#define LI 5
-#define COL 3
+#define LI 50
+#define COL 50
 #define RANDOM_MIN 0
 #define RANDOM_MAX 29999
 typedef int KIND;
+
+
+/* CABEÇALHOS */
+KIND randomInt(KIND min, KIND max);
+KIND** createMatrix(int l, int c);
+void fillMatrix(KIND** matrix, int l, int c);
+void printMatrix(KIND **matrix, int l, int c);
+void freeMatrix(KIND** matrix, int l, int c);
+int isPrime(long n);
+/* FIM CABEÇALHOS */
+
+/* Região crítica */
+int primeNumber = 0;
 
 /**
 *	Retorna um número randomico entre o mínimo
@@ -77,16 +91,36 @@ void freeMatrix(KIND** matrix, int l, int c){
 	free(matrix);
 }
 
+int isPrime(long n){
+	if(n==2 || n==3)return 1;
+	if( (n==1 || n%2==0)|| (n%3)==0 )return 0;
+	int i=5;
+	int w = 2;
+	while( i*i <= n ){
+		if( n % i == 0)return 0;
+		i+=w;
+		w = 6 - w;
+	}
+	return 1;
+}
+
+void countPrimesSerial(KIND** mat, int li, int col){
+	int i, j;
+	for(i=0;i<li;i++)
+		for(j=0; j < col; j++){
+			if(isPrime(mat[i][j])){
+				primeNumber++;
+			}
+		}
+}
+
 
 int main(){
 	srand(10);
-    //aloca matriz
-    KIND** matriz = createMatrix(LI, COL);
-    //preenche com números randômicos
-    fillMatrix(matriz, LI, COL);
-    //imprime
-    printMatrix(matriz, LI, COL);
-    //libera
-    freeMatrix(matriz, LI, COL);
-    return 0;
+	KIND** matriz = createMatrix(LI, COL);
+	fillMatrix(matriz, LI, COL);
+	countPrimesSerial(matriz, LI, COL);
+	printMatrix(matriz,LI,COL);//remove
+	printf("\n\nNumeros primos: %d\n", primeNumber);
+	freeMatrix(matriz, LI, COL);
 }
