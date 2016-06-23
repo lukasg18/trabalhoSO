@@ -100,10 +100,6 @@ int main(int argc, char const *argv[])
 }
 
 
-
-
-
-
 /**
 *	Dado uma matriz e sua dimensão incrementa a variável global "primeNumber"
 *	com a quantidade de números primos dessa matriz de modo serial
@@ -122,6 +118,15 @@ void countPrimesSerial(KIND** mat, int li, int col)
 		}
 }
 
+/**
+*	Função a ser executada em cada thread.
+*	Analisa a variável global "subAvailable" para saber se há macrobloco disponível
+*	caso haja essa mesma variável será decrementada sinalizando que a thread atual
+*	está analisando o macrobloco na posição que subAvailable havia anteriormente.
+*	O vetor de macroblocos a qual essa variável global sinaliza deve ser passado
+*	como parâmetro.
+*	@param void* threadid (cast of macroBloco*)
+*/
 void *countPrimesThread(void *threadid)
 {
 	macroBloco m;
