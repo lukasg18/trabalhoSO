@@ -1,20 +1,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <time.h>
 
 /* Configurações da matriz */
-#define LI 50
-#define COL 50
+#define LI 5000
+#define COL 5000
 #define RANDOM_MIN 0
 #define RANDOM_MAX 29999
 typedef int KIND;
 /* -- */
 
 /* Configurações do multiThread */
-#define NUM_THREADS 2
+#define NUM_THREADS 4
+#define MACROB_LI 1000
+#define MACROB_COL 1000
 typedef struct{
 	int liStart, liEnd, colStart, colEnd;
-} threadParam;
+} macroBloco;
 /* -- */
 
 /* CABEÇALHO DE FUNÇÕES */
@@ -29,9 +32,11 @@ KIND randomInt(KIND min, KIND max);
 
 
 /* VARIÁVEIS GLOBAIS */
-KIND** matriz;
+KIND** matrix;
 int primeNumber; //região crítica
 pthread_mutex_t mutexPrimeNumber;
+int subAvailable; //região crítica
+pthread_mutex_t mutexSubAval;
 /* -- */
 
 
@@ -40,30 +45,41 @@ int main(int argc, char const *argv[])
 {
 	srand(10); //Seed fixado para formar sempre a mesma sequência randômica
 
-	matriz = createMatrix(LI, COL);//Alocação da matriz
-	fillMatrix(matriz, LI, COL);
+	matrix = createMatrix(LI, COL);//Alocação da matriz
+	fillMatrix(matrix, LI, COL);
+	clock_t begin, end;
 
 	/* IMPLEMENTAÇÃO SERIAL */
+	begin = clock();
 	primeNumber = 0;
-	countPrimesSerial(matriz, LI, COL);
-	printf("Serial: %d\n", primeNumber);
+	countPrimesSerial(matrix, LI, COL);
+	end = clock();
+	printf("--------Serial--------\nNúmeros primos contados:%d\nTempo: %lfs\n", primeNumber, (double)((end-begin)/CLOCKS_PER_SEC));
 	/* FIM DA IMPLEMENTAÇÃO SERIAL */
 
 
 	/* IMPLEMENTAÇÃO PARALELA */
+	begin = clock();
+	// Divisão das submatrizes
+	subAvailable = (LI*COL)/(MACROB_LI*MACROB_COL);
+	macroBloco subMatrices[subAvailable];
+	int ml=0, mc=0, i=0;
+	for(ml=0;ml<LI;ml+=MACROB_LI)
+		for(mc=0;mc<COL;mc+=MACROB_COL){
+			subMatrices[i].liStart = ml;
+			subMatrices[i].liEnd = ml+MACROB_LI;
+			subMatrices[i].colStart = mc;
+			subMatrices[i].colEnd = mc+MACROB_COL;
+			i++;
+		}
+
 	primeNumber = 0;
 	pthread_t threads[NUM_THREADS];
-	threadParam params[NUM_THREADS];
 	int t, rc;
 	//Iniciando threads
 	for(t=0; t<NUM_THREADS; t++){
 
-		params[t].liStart = t+1;
-		params[t].liEnd = 1;
-		params[t].colStart = 1;
-		params[t].colEnd = 1;
-
-		rc = pthread_create(&threads[t], NULL, countPrimesThread, (void*)&params[t]);
+		rc = pthread_create(&threads[t], NULL, countPrimesThread, (void*)&subMatrices); //INICIA A THREAD PASSANDO PARÂMETRO "subMatrices" (referência)
 		if (rc){
 			printf("ERROR code is %d\n", rc);
 			exit(-1);
@@ -74,10 +90,12 @@ int main(int argc, char const *argv[])
 	for(t=0; t< NUM_THREADS; t++){
 	    pthread_join(threads[t],NULL);
 	}
+	end = clock();
+	printf("--------Paralelo--------\nNúmeros primos contados:%d\nTempo: %lfs\n", primeNumber, (double)((end-begin)/CLOCKS_PER_SEC));
 	/* FIM DA IMPLEMENTAÇÃO PARALELA */
 
 	//Free da matriz
-	freeMatrix(matriz, LI, COL);
+	freeMatrix(matrix, LI, COL);
 	return 0;
 }
 
@@ -106,7 +124,40 @@ void countPrimesSerial(KIND** mat, int li, int col)
 
 void *countPrimesThread(void *threadid)
 {
-	printf("\nThread:%d\n", ((threadParam*)threadid)->liStart);
+	macroBloco m;
+	int i, j, endThread=0;
+	while(1)
+	{
+		//Entrando na região crítica
+		pthread_mutex_lock(&mutexSubAval);
+		//Caso haja macrobloco disponível ele irá para variável "m"
+		if(subAvailable>-1){
+			m = ((macroBloco*)threadid)[subAvailable--];
+		}else{
+			endThread=1;
+		}
+		pthread_mutex_unlock(&mutexSubAval);
+		//Saindo da região crítica
+
+		if(endThread)break; //Se não houver macrobloco disponível encerra o while e finaliza a thread
+		
+		//Verificando o macrobloco disponível
+		for(i=m.liStart;i<m.liEnd;i++)
+			for(j=m.colStart;j<m.colEnd;j++){
+
+				//Se o elemento atual for primo incrementa a variável global "primeNumber"
+				if( isPrime(matrix[i][j]) ){
+					//Entrando na região crítica
+					pthread_mutex_lock(&mutexPrimeNumber);
+					primeNumber++;
+					pthread_mutex_unlock(&mutexPrimeNumber);
+					//Saindo da região crítica
+				}
+
+			}
+
+	}
+	pthread_exit(NULL);
 }
 
 /**
