@@ -4,17 +4,17 @@
 #include <time.h>
 
 /* Configurações da matriz */
-#define LI 5000
-#define COL 5000
+#define LI 10000
+#define COL 10000
 #define RANDOM_MIN 0
 #define RANDOM_MAX 29999
 typedef int KIND;
 /* -- */
 
 /* Configurações do multiThread */
-#define NUM_THREADS 4
-#define MACROB_LI 1000
-#define MACROB_COL 1000
+#define NUM_THREADS 2
+#define MACROB_LI 2000
+#define MACROB_COL 2000
 typedef struct{
 	int liStart, liEnd, colStart, colEnd;
 } macroBloco;
@@ -47,19 +47,19 @@ int main(int argc, char const *argv[])
 
 	matrix = createMatrix(LI, COL);//Alocação da matriz
 	fillMatrix(matrix, LI, COL);
-	clock_t begin, end;
+	time_t beginSerial, endSerial, beginParalelo, endParalelo;
 
 	/* IMPLEMENTAÇÃO SERIAL */
-	begin = clock();
+	time(&beginSerial);
 	primeNumber = 0;
 	countPrimesSerial(matrix, LI, COL);
-	end = clock();
-	printf("--------Serial--------\nNúmeros primos contados:%d\nTempo: %lfs\n", primeNumber, (double)((end-begin)/CLOCKS_PER_SEC));
+	time(&endSerial);
+	printf("--------Serial--------\nNúmeros primos contados:%d\nTempo: %.1fs\n", primeNumber, difftime(endSerial,beginSerial));
 	/* FIM DA IMPLEMENTAÇÃO SERIAL */
 
 
 	/* IMPLEMENTAÇÃO PARALELA */
-	begin = clock();
+	time(&beginParalelo);
 	// Divisão das submatrizes
 	subAvailable = (LI*COL)/(MACROB_LI*MACROB_COL);
 	macroBloco subMatrices[subAvailable];
@@ -90,8 +90,8 @@ int main(int argc, char const *argv[])
 	for(t=0; t< NUM_THREADS; t++){
 	    pthread_join(threads[t],NULL);
 	}
-	end = clock();
-	printf("--------Paralelo--------\nNúmeros primos contados:%d\nTempo: %lfs\n", primeNumber, (double)((end-begin)/CLOCKS_PER_SEC));
+	time(&endParalelo);
+	printf("--------Paralelo--------\nNúmeros primos contados:%d\nTempo: %.1fs\n", primeNumber, difftime(endParalelo,beginParalelo));
 	/* FIM DA IMPLEMENTAÇÃO PARALELA */
 
 	//Free da matriz
