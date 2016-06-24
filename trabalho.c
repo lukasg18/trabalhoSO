@@ -12,9 +12,9 @@ typedef int KIND;
 /* -- */
 
 /* Configurações do multiThread */
-#define NUM_THREADS 2
-#define MACROB_LI 2000
-#define MACROB_COL 2000
+#define NUM_THREADS 4
+#define MACROB_LI 1000
+#define MACROB_COL 1000
 typedef struct{
 	int liStart, liEnd, colStart, colEnd;
 } macroBloco;
@@ -60,9 +60,11 @@ int main(int argc, char const *argv[])
 
 	/* IMPLEMENTAÇÃO PARALELA */
 	time(&beginParalelo);
+
 	// Divisão das submatrizes
 	subAvailable = (LI*COL)/(MACROB_LI*MACROB_COL);
-	macroBloco subMatrices[subAvailable];
+	macroBloco* subMatrices = (macroBloco*)malloc( subAvailable * sizeof(macroBloco) );
+
 	int ml=0, mc=0, i=0;
 	for(ml=0;ml<LI;ml+=MACROB_LI)
 		for(mc=0;mc<COL;mc+=MACROB_COL){
@@ -75,11 +77,11 @@ int main(int argc, char const *argv[])
 
 	primeNumber = 0;
 	pthread_t threads[NUM_THREADS];
-	int t, rc;
+	int t=0, rc=0;
 	//Iniciando threads
 	for(t=0; t<NUM_THREADS; t++){
 
-		rc = pthread_create(&threads[t], NULL, countPrimesThread, (void*)&subMatrices); //INICIA A THREAD PASSANDO PARÂMETRO "subMatrices" (referência)
+		rc = pthread_create(&threads[t], NULL, countPrimesThread, (void*)subMatrices); //INICIA A THREAD PASSANDO PARÂMETRO "subMatrices" (referência)
 		if (rc){
 			printf("ERROR code is %d\n", rc);
 			exit(-1);
@@ -92,10 +94,12 @@ int main(int argc, char const *argv[])
 	}
 	time(&endParalelo);
 	printf("--------Paralelo--------\nNúmeros primos contados:%d\nTempo: %.1fs\n", primeNumber, difftime(endParalelo,beginParalelo));
+	free(subMatrices);
 	/* FIM DA IMPLEMENTAÇÃO PARALELA */
-
 	//Free da matriz
 	freeMatrix(matrix, LI, COL);
+
+	pthread_exit(NULL);
 	return 0;
 }
 
@@ -130,7 +134,7 @@ void countPrimesSerial(KIND** mat, int li, int col)
 void *countPrimesThread(void *threadid)
 {
 	macroBloco m;
-	int i, j, endThread=0;
+	int i=0, j=0, endThread=0;
 	while(1)
 	{
 		//Entrando na região crítica
@@ -144,7 +148,7 @@ void *countPrimesThread(void *threadid)
 		pthread_mutex_unlock(&mutexSubAval);
 		//Saindo da região crítica
 
-		if(endThread)break; //Se não houver macrobloco disponível encerra o while e finaliza a thread
+		if(endThread)pthread_exit(NULL); //Se não houver macrobloco disponível finaliza a thread
 		
 		//Verificando o macrobloco disponível
 		for(i=m.liStart;i<m.liEnd;i++)
@@ -162,7 +166,6 @@ void *countPrimesThread(void *threadid)
 			}
 
 	}
-	pthread_exit(NULL);
 }
 
 /**
